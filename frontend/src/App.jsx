@@ -8,20 +8,44 @@ function App() {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
+  // const handleUpload = async (e) => {
+  //   e.preventDefault();
+  //   if (!file) return;
+  //   const formData = new FormData();
+  //   formData.append('file', file);
 
-    try {
-      await axios.post(API + '/upload', formData);
-      setFile(null);
-      fetchFiles(); // Refresh after upload
-    } catch (error) {
-      console.error('Upload error:', error);
-    }
-  };
+  //   try {
+  //     await axios.post(API + '/upload', formData);
+  //     setFile(null);
+  //     setTimeout(()=> fetchFiles(), 500)
+  //     fetchFiles(); // Refresh after upload
+  //   } catch (error) {
+  //     console.error('Upload error:', error);
+  //   }
+  // };
+
+  const handleUpload = async (e) => {
+  e.preventDefault();
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await axios.post(API + '/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    // Immediately add the new file to state
+    setFiles(prev => [response.data.file, ...prev]);
+    setFile(null);
+  } catch (error) {
+    console.error('Upload error:', error.response?.data || error.message);
+    alert(`Upload failed: ${error.response?.data?.error || error.message}`);
+  }
+};
 
   const fetchFiles = async () => {
     try {
@@ -54,7 +78,7 @@ function App() {
           <li key={f._id}>
             <span>{f.filename}</span>
             <a
-              href={`${API}/${f.path}`}
+              href={`${API}/uploads/${f.filename}`}
               target="_blank"
               rel="noopener noreferrer"
             >

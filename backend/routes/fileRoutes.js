@@ -12,16 +12,44 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Upload route
+// router.post('/upload', upload.single('file'), async (req, res) => {
+//   try {
+//     const newFile = new File({
+//       filename: req.file.originalname,
+//       path: req.file.path
+//     });
+//     await newFile.save();
+//     res.status(200).json({ message: 'File uploaded!', file: newFile });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Upload failed' });
+//   }
+// });
+
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
     const newFile = new File({
       filename: req.file.originalname,
-      path: req.file.path
+      path: req.file.path.replace(/\\/g, '/') // Ensure consistent path formatting
     });
-    await newFile.save();
-    res.status(200).json({ message: 'File uploaded!', file: newFile });
+
+    // Explicitly wait for save to complete
+    const savedFile = await newFile.save();
+    
+    // Send complete file data including _id
+    res.status(200).json({ 
+      message: 'File uploaded successfully',
+      file: savedFile
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Upload failed' });
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      error: 'Upload failed',
+      details: error.message 
+    });
   }
 });
 
