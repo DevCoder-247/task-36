@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 })
 
 // MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/fileupload', {
+mongoose.connect(API + '/fileupload', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('MongoDB connected'))
