@@ -25,30 +25,38 @@ const upload = multer({ storage });
 //   }
 // });
 
+// In your fileRoutes.js
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ success: false, error: 'No file provided' });
     }
 
     const newFile = new File({
       filename: req.file.originalname,
-      path: req.file.path.replace(/\\/g, '/') // Ensure consistent path formatting
+      path: req.file.path
     });
 
-    // Explicitly wait for save to complete
     const savedFile = await newFile.save();
     
-    // Send complete file data including _id
+    // Send explicit success response with file data
     res.status(200).json({ 
+      success: true,
       message: 'File uploaded successfully',
-      file: savedFile
+      file: {
+        _id: savedFile._id,
+        filename: savedFile.filename,
+        path: savedFile.path,
+        uploadedAt: savedFile.uploadedAt
+      }
     });
+    
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ 
+      success: false,
       error: 'Upload failed',
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

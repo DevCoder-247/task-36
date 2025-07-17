@@ -26,23 +26,31 @@ function App() {
 
   const handleUpload = async (e) => {
   e.preventDefault();
-  if (!file) return;
+  if (!file) {
+    alert('Please select a file first');
+    return;
+  }
 
   const formData = new FormData();
   formData.append('file', file);
 
   try {
-    const response = await axios.post(API + '/upload', formData, {
+    const response = await axios.post(`${API}/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
-    
-    // Immediately add the new file to state
-    setFiles(prev => [response.data.file, ...prev]);
-    setFile(null);
+
+    if (response.data.success) {
+      // Add the new file to beginning of files array
+      setFiles(prevFiles => [response.data.file, ...prevFiles]);
+      setFile(null);
+      alert('File uploaded successfully!');
+    } else {
+      throw new Error(response.data.error || 'Upload failed');
+    }
   } catch (error) {
-    console.error('Upload error:', error.response?.data || error.message);
+    console.error('Upload error:', error);
     alert(`Upload failed: ${error.response?.data?.error || error.message}`);
   }
 };
